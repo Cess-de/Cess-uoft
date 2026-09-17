@@ -24,6 +24,11 @@
 const CESS_API_URL =
   "https://script.google.com/macros/s/AKfycbz3-9MvXuDzpgCUIUWB_F3BzYdM6el_JZtcKqiIYiPnIRfEMYzVTSlz4-RKbTRGia1q/exec";
 
+/**
+ * Error types the UI layer can branch on.
+ * These are inferred client-side; the backend itself only ever
+ * returns { ok:false, error: <string> } with no error codes.
+ */
 const CessApiErrorType = {
   NETWORK: "network",
   SERVER: "server",
@@ -40,6 +45,8 @@ class CessApiError extends Error {
 
 /**
  * Low-level POST to the Apps Script Web App.
+ * Never add custom headers — Apps Script Web Apps do not need them
+ * and nonstandard headers can trigger CORS preflight issues.
  *
  * @param {string} action - one of the IMPLEMENTED_ACTIONS keys
  * @param {object} payload - action-specific fields
@@ -65,15 +72,31 @@ async function cessApiCall(action, payload) {
 
   let response;
   try {
-    response = await fetch(CESS_API_URL, {
-      method: "POST",
-      // Do NOT set Content-Type manually — fetch() sets
-      // application/x-www-form-urlencoded;charset=UTF-8 for
-      // URLSearchParams bodies, which is what keeps this a
-      // CORS-simple request.
-      body: params
-    });
+    // TEMPORARY DIAGNOSTIC: abort + clear error if the request
+    // never settles, instead of hanging forever on "جارٍ الإرسال".
+    // Remove this AbortController block once the hang is diagnosed.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      response = await fetch(CESS_API_URL, {
+        method: "POST",
+        // Do NOT set Content-Type manually — fetch() sets
+        // application/x-www-form-urlencoded;charset=UTF-8 for
+        // URLSearchParams bodies, which is what keeps this a
+        // CORS-simple request.
+        body: params,
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
   } catch (networkErr) {
+    if (networkErr && networkErr.name === "AbortError") {
+      throw new CessApiError(
+        "API request timed out after 15 seconds.",
+        CessApiErrorType.NETWORK
+      );
+    }
     throw new CessApiError(
       "Network error. Check your connection and try again.",
       CessApiErrorType.NETWORK
