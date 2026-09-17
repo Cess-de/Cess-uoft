@@ -17,16 +17,13 @@
  *   auth.changeEmail
  *   auth.recoverEmail
  *
- * Response envelope (Utils.gs jsonResponse):
+ * Response envelope:
  *   { ok: boolean, data: object|null, error: string|null }
  */
 
 const CESS_API_URL =
   "https://script.google.com/macros/s/AKfycbz3-9MvXuDzpgCUIUWB_F3BzYdM6el_J_ZtcKqiIYiPnIRfEMYzVTSlz4-RKbTRGia1q/exec";
 
-/**
- * Error types the UI layer can branch on.
- */
 const CessApiErrorType = {
   NETWORK: "network",
   SERVER: "server",
@@ -41,17 +38,6 @@ class CessApiError extends Error {
   }
 }
 
-/**
- * Low-level POST to the Apps Script Web App.
- *
- * The backend expects JSON requests and reads the request body
- * through e.postData.contents.
- *
- * @param {string} action
- * @param {object} payload
- * @returns {Promise<object>}
- * @throws {CessApiError}
- */
 async function cessApiCall(action, payload) {
   if (!action || typeof action !== "string") {
     throw new CessApiError(
@@ -60,10 +46,17 @@ async function cessApiCall(action, payload) {
     );
   }
 
-  const body = JSON.stringify({
-    action,
-    ...(payload || {})
-  });
+  const params = new URLSearchParams();
+
+  params.append("action", action);
+
+  if (payload && typeof payload === "object") {
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, String(value));
+      }
+    });
+  }
 
   let response;
 
@@ -71,9 +64,10 @@ async function cessApiCall(action, payload) {
     response = await fetch(CESS_API_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type":
+          "application/x-www-form-urlencoded;charset=UTF-8"
       },
-      body
+      body: params.toString()
     });
   } catch (networkErr) {
     throw new CessApiError(
@@ -114,10 +108,6 @@ async function cessApiCall(action, payload) {
   return json.data;
 }
 
-/**
- * Namespaced, typed wrappers — one per implemented backend action.
- * Pages/components should only ever call through CessApi.*
- */
 const CessApi = {
   // ---- Activation ----
 
@@ -186,12 +176,6 @@ const CessApi = {
 
   // ---- Password Recovery ----
 
-  // Phase 1:
-  // { student_id }
-
-  // Phase 2:
-  // { student_id, email_code }
-
   forgotPasswordStart(studentId, emailCode) {
     const payload = {
       student_id: studentId
@@ -225,12 +209,6 @@ const CessApi = {
 
   // ---- Email Management ----
 
-  // Phase 1:
-  // { token, new_email }
-
-  // Phase 2:
-  // { token, new_email, code }
-
   changeEmail(
     sessionToken,
     newEmail,
@@ -253,9 +231,6 @@ const CessApi = {
 
   // ---- Email Recovery ----
 
-  // Phase 1:
-  // { student_id }
-
   recoverEmailStart(studentId) {
     return cessApiCall(
       "auth.recoverEmail",
@@ -264,9 +239,6 @@ const CessApi = {
       }
     );
   },
-
-  // Phase 2:
-  // { student_id, email_code, a1, a2, new_email }
 
   recoverEmailVerify(
     studentId,
@@ -286,9 +258,6 @@ const CessApi = {
       }
     );
   },
-
-  // Phase 3:
-  // { recovery_token, new_email, verification_code }
 
   recoverEmailComplete(
     recoveryToken,
