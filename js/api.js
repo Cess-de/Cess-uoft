@@ -20,10 +20,8 @@
  * Response envelope (Utils.gs jsonResponse):
  *   { ok: boolean, data: object|null, error: string|null }
  */
-
 const CESS_API_URL =
-  "https://script.google.com/macros/s/AKfycbz3-9MvXuDzpgCUIUWB_F3BzYdM6el_JZtcKqiIYiPnIRfEMYzVTSlz4-RKbTRGia1q/exec";
-
+  "https://script.google.com/macros/s/AKfycbz3-9MvXuDzpgCUIUWB_F3BzYdM6elJ_ZtcKqiIYiPnIRfEMYzVTSlz4-RKbTRGia1q/exec";
 /**
  * Error types the UI layer can branch on.
  * These are inferred client-side; the backend itself only ever
@@ -32,9 +30,8 @@ const CESS_API_URL =
 const CessApiErrorType = {
   NETWORK: "network",
   SERVER: "server",
-  VALIDATION: "validation" // backend-reported, treated as validation/auth error text
+  VALIDATION: "validation"
 };
-
 class CessApiError extends Error {
   constructor(message, type) {
     super(message);
@@ -42,7 +39,6 @@ class CessApiError extends Error {
     this.type = type || CessApiErrorType.SERVER;
   }
 }
-
 /**
  * Low-level POST to the Apps Script Web App.
  * Never add custom headers — Apps Script Web Apps do not need them
@@ -57,33 +53,22 @@ async function cessApiCall(action, payload) {
   if (!action || typeof action !== "string") {
     throw new CessApiError("Missing action.", CessApiErrorType.VALIDATION);
   }
-
-  // URLSearchParams -> browser sets Content-Type to
-  // application/x-www-form-urlencoded automatically, which is a
-  // CORS-simple request (no OPTIONS preflight). Code.gs's
-  // handleRequest() reads these via e.parameter when Content-Type
-  // is not application/json.
   const params = new URLSearchParams();
   params.set("action", action);
   Object.entries(payload || {}).forEach(([key, value]) => {
     if (value === undefined || value === null) return;
-    params.set(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+    params.set(
+      key,
+      typeof value === "object" ? JSON.stringify(value) : String(value)
+    );
   });
-
   let response;
   try {
-    // TEMPORARY DIAGNOSTIC: abort + clear error if the request
-    // never settles, instead of hanging forever on "جارٍ الإرسال".
-    // Remove this AbortController block once the hang is diagnosed.
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
       response = await fetch(CESS_API_URL, {
         method: "POST",
-        // Do NOT set Content-Type manually — fetch() sets
-        // application/x-www-form-urlencoded;charset=UTF-8 for
-        // URLSearchParams bodies, which is what keeps this a
-        // CORS-simple request.
         body: params,
         signal: controller.signal
       });
@@ -102,7 +87,6 @@ async function cessApiCall(action, payload) {
       CessApiErrorType.NETWORK
     );
   }
-
   let json;
   try {
     json = await response.json();
@@ -112,24 +96,24 @@ async function cessApiCall(action, payload) {
       CessApiErrorType.SERVER
     );
   }
-
-  if (!json || typeof json !== "object" || typeof json.ok !== "boolean") {
+  if (
+    !json ||
+    typeof json !== "object" ||
+    typeof json.ok !== "boolean"
+  ) {
     throw new CessApiError(
       "Unexpected server response.",
       CessApiErrorType.SERVER
     );
   }
-
   if (!json.ok) {
     throw new CessApiError(
       json.error || "Request could not be completed.",
       CessApiErrorType.VALIDATION
     );
   }
-
   return json.data;
 }
-
 /**
  * Namespaced, typed wrappers — one per implemented backend action.
  * Pages/components should only ever call through CessApi.*
@@ -142,14 +126,12 @@ const CessApi = {
       email
     });
   },
-
   verifyActivationCode(studentId, code) {
     return cessApiCall("auth.verifyActivationCode", {
       student_id: studentId,
       code
     });
   },
-
   setPassword(activationToken, password, confirmPassword) {
     return cessApiCall("auth.setPassword", {
       activation_token: activationToken,
@@ -157,7 +139,6 @@ const CessApi = {
       confirm_password: confirmPassword
     });
   },
-
   setSecurityQuestions(activationToken, q1Id, a1, q2Id, a2) {
     return cessApiCall("auth.setSecurityQuestions", {
       activation_token: activationToken,
@@ -167,7 +148,6 @@ const CessApi = {
       a2
     });
   },
-
   // ---- Login / session ----
   login(studentId, password) {
     return cessApiCall("auth.login", {
@@ -175,25 +155,27 @@ const CessApi = {
       password
     });
   },
-
   refreshSession(token) {
     return cessApiCall("auth.refreshSession", { token });
   },
-
   getSession(token) {
     return cessApiCall("auth.getSession", { token });
   },
-
   // ---- Password recovery ----
-  // Phase 1: { student_id } -> generic ack
-  // Phase 2: { student_id, email_code } -> { questions, recovery_token, expires_at }
   forgotPasswordStart(studentId, emailCode) {
     const payload = { student_id: studentId };
-    if (emailCode) payload.email_code = emailCode;
+    if (emailCode) {
+      payload.email_code = emailCode;
+    }
     return cessApiCall("auth.forgotPasswordStart", payload);
   },
-
-  resetPassword(recoveryToken, a1, a2, newPassword, confirmPassword) {
+  resetPassword(
+    recoveryToken,
+    a1,
+    a2,
+    newPassword,
+    confirmPassword
+  ) {
     return cessApiCall("auth.resetPassword", {
       recovery_token: recoveryToken,
       a1,
@@ -202,24 +184,29 @@ const CessApi = {
       confirm_password: confirmPassword
     });
   },
-
   // ---- Email management ----
-  // Phase 1 (no code): { token, new_email } -> { code_sent: true }
-  // Phase 2 (with code): { token, new_email, code } -> { email_changed: true }
   changeEmail(sessionToken, newEmail, code) {
-    const payload = { token: sessionToken, new_email: newEmail };
-    if (code) payload.code = code;
+    const payload = {
+      token: sessionToken,
+      new_email: newEmail
+    };
+    if (code) {
+      payload.code = code;
+    }
     return cessApiCall("auth.changeEmail", payload);
   },
-
-  // Phase 1: { student_id } -> generic ack
-  // Phase 2: { student_id, email_code, a1, a2, new_email } -> { code_sent, recovery_token, expires_at }
-  // Phase 3: { recovery_token, new_email, verification_code } -> { email_recovered: true }
   recoverEmailStart(studentId) {
-    return cessApiCall("auth.recoverEmail", { student_id: studentId });
+    return cessApiCall("auth.recoverEmail", {
+      student_id: studentId
+    });
   },
-
-  recoverEmailVerify(studentId, emailCode, a1, a2, newEmail) {
+  recoverEmailVerify(
+    studentId,
+    emailCode,
+    a1,
+    a2,
+    newEmail
+  ) {
     return cessApiCall("auth.recoverEmail", {
       student_id: studentId,
       email_code: emailCode,
@@ -228,8 +215,11 @@ const CessApi = {
       new_email: newEmail
     });
   },
-
-  recoverEmailComplete(recoveryToken, newEmail, verificationCode) {
+  recoverEmailComplete(
+    recoveryToken,
+    newEmail,
+    verificationCode
+  ) {
     return cessApiCall("auth.recoverEmail", {
       recovery_token: recoveryToken,
       new_email: newEmail,
