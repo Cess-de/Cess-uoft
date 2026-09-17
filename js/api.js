@@ -22,12 +22,10 @@
  */
 
 const CESS_API_URL =
-  "https://script.google.com/macros/s/AKfycbz3-9MvXuDzpgCUIUWB_F3BzYdM6el_JZtcKqiIYiPnIRfEMYzVTSlz4-RKbTRGia1/exec";
+  "https://script.google.com/macros/s/AKfycbz3-9MvXuDzpgCUIUWB_F3BzYdM6el_J_ZtcKqiIYiPnIRfEMYzVTSlz4-RKbTRGia1q/exec";
 
 /**
  * Error types the UI layer can branch on.
- * These are inferred client-side; the backend itself only ever
- * returns { ok:false, error: <string> } with no error codes.
  */
 const CessApiErrorType = {
   NETWORK: "network",
@@ -46,10 +44,8 @@ class CessApiError extends Error {
 /**
  * Low-level POST to the Apps Script Web App.
  *
- * Uses application/x-www-form-urlencoded instead of application/json
- * so the browser can send the request without a CORS preflight.
- *
- * The Apps Script backend reads these values through e.parameter.
+ * The backend expects JSON requests and reads the request body
+ * through e.postData.contents.
  *
  * @param {string} action
  * @param {object} payload
@@ -58,13 +54,16 @@ class CessApiError extends Error {
  */
 async function cessApiCall(action, payload) {
   if (!action || typeof action !== "string") {
-    throw new CessApiError("Missing action.", CessApiErrorType.VALIDATION);
+    throw new CessApiError(
+      "Missing action.",
+      CessApiErrorType.VALIDATION
+    );
   }
 
-  const body = new URLSearchParams({
+  const body = JSON.stringify({
     action,
     ...(payload || {})
-  }).toString();
+  });
 
   let response;
 
@@ -72,7 +71,7 @@ async function cessApiCall(action, payload) {
     response = await fetch(CESS_API_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+        "Content-Type": "application/json"
       },
       body
     });
@@ -136,7 +135,11 @@ const CessApi = {
     });
   },
 
-  setPassword(activationToken, password, confirmPassword) {
+  setPassword(
+    activationToken,
+    password,
+    confirmPassword
+  ) {
     return cessApiCall("auth.setPassword", {
       activation_token: activationToken,
       password,
@@ -144,7 +147,13 @@ const CessApi = {
     });
   },
 
-  setSecurityQuestions(activationToken, q1Id, a1, q2Id, a2) {
+  setSecurityQuestions(
+    activationToken,
+    q1Id,
+    a1,
+    q2Id,
+    a2
+  ) {
     return cessApiCall("auth.setSecurityQuestions", {
       activation_token: activationToken,
       q1_id: q1Id,
@@ -154,7 +163,7 @@ const CessApi = {
     });
   },
 
-  // ---- Login / session ----
+  // ---- Login / Session ----
 
   login(studentId, password) {
     return cessApiCall("auth.login", {
@@ -175,7 +184,13 @@ const CessApi = {
     });
   },
 
-  // ---- Password recovery ----
+  // ---- Password Recovery ----
+
+  // Phase 1:
+  // { student_id }
+
+  // Phase 2:
+  // { student_id, email_code }
 
   forgotPasswordStart(studentId, emailCode) {
     const payload = {
@@ -208,9 +223,19 @@ const CessApi = {
     });
   },
 
-  // ---- Email management ----
+  // ---- Email Management ----
 
-  changeEmail(sessionToken, newEmail, code) {
+  // Phase 1:
+  // { token, new_email }
+
+  // Phase 2:
+  // { token, new_email, code }
+
+  changeEmail(
+    sessionToken,
+    newEmail,
+    code
+  ) {
     const payload = {
       token: sessionToken,
       new_email: newEmail
@@ -226,7 +251,10 @@ const CessApi = {
     );
   },
 
-  // ---- Email recovery ----
+  // ---- Email Recovery ----
+
+  // Phase 1:
+  // { student_id }
 
   recoverEmailStart(studentId) {
     return cessApiCall(
@@ -237,6 +265,9 @@ const CessApi = {
     );
   },
 
+  // Phase 2:
+  // { student_id, email_code, a1, a2, new_email }
+
   recoverEmailVerify(
     studentId,
     emailCode,
@@ -244,24 +275,33 @@ const CessApi = {
     a2,
     newEmail
   ) {
-    return cessApiCall("auth.recoverEmail", {
-      student_id: studentId,
-      email_code: emailCode,
-      a1,
-      a2,
-      new_email: newEmail
-    });
+    return cessApiCall(
+      "auth.recoverEmail",
+      {
+        student_id: studentId,
+        email_code: emailCode,
+        a1,
+        a2,
+        new_email: newEmail
+      }
+    );
   },
+
+  // Phase 3:
+  // { recovery_token, new_email, verification_code }
 
   recoverEmailComplete(
     recoveryToken,
     newEmail,
     verificationCode
   ) {
-    return cessApiCall("auth.recoverEmail", {
-      recovery_token: recoveryToken,
-      new_email: newEmail,
-      verification_code: verificationCode
-    });
+    return cessApiCall(
+      "auth.recoverEmail",
+      {
+        recovery_token: recoveryToken,
+        new_email: newEmail,
+        verification_code: verificationCode
+      }
+    );
   }
 };
