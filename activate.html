@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n-ar="تفعيل الحساب — CESS" data-i18n-en="Activate Account — CESS">تفعيل الحساب — CESS</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n-ar="تخطَّ إلى المحتوى" data-i18n-en="Skip to content">Skip to content</a>
+
+<header class="site-header">
+  <nav class="nav-bar container" aria-label="Primary">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark" aria-hidden="true">CE</span>
+      <span data-i18n-ar="CESS" data-i18n-en="CESS">CESS</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="../index.html" data-nav-link data-i18n-ar="الرئيسية" data-i18n-en="Home">Home</a></li>
+      <li><a href="about.html" data-nav-link data-i18n-ar="عن الجمعية" data-i18n-en="About">About</a></li>
+      <li><a href="login.html" data-nav-link data-i18n-ar="تسجيل الدخول" data-i18n-en="Sign In">Sign In</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button data-lang-option="ar">AR</button>
+        <button data-lang-option="en">EN</button>
+      </div>
+      <button class="icon-btn" data-theme-toggle aria-pressed="false" aria-label="Toggle dark mode">◐</button>
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="Menu">
+        <span class="bar"></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu hidden" id="mobile-menu" data-mobile-menu>
+    <ul>
+      <li><a href="../index.html" data-i18n-ar="الرئيسية" data-i18n-en="Home">Home</a></li>
+      <li><a href="about.html" data-i18n-ar="عن الجمعية" data-i18n-en="About">About</a></li>
+      <li><a href="login.html" data-i18n-ar="تسجيل الدخول" data-i18n-en="Sign In">Sign In</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main" class="section container" style="max-width: 560px;" data-activation-wizard>
+  <h1 data-i18n-ar="تفعيل الحساب" data-i18n-en="Activate Your Account">Activate Your Account</h1>
+
+  <ul class="steps" data-steps-indicator>
+    <li class="is-active" data-i18n-ar="البيانات" data-i18n-en="Details">Details</li>
+    <li data-i18n-ar="الرمز" data-i18n-en="Code">Code</li>
+    <li data-i18n-ar="كلمة المرور" data-i18n-en="Password">Password</li>
+    <li data-i18n-ar="أسئلة الأمان" data-i18n-en="Security">Security</li>
+  </ul>
+
+  <!-- STEP 1: Student ID (1A) then Email (1B) -->
+  <section data-activation-step="1">
+
+    <!-- SUB-STEP 1A: Student ID -->
+    <div data-activation-substep="1a">
+      <p class="text-muted" data-i18n-ar="أدخل رقمك الجامعي لبدء التفعيل."
+         data-i18n-en="Enter your Student ID to begin activation.">
+        Enter your Student ID to begin activation.
+      </p>
+      <div data-form-alert></div>
+      <form novalidate>
+        <div class="field" data-field="student_id">
+          <label for="a-student-id" data-i18n-ar="الرقم الجامعي" data-i18n-en="Student ID">Student ID</label>
+          <input class="input" type="text" id="a-student-id" name="student_id" autocomplete="username" required>
+          <div class="field-error" role="alert"></div>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block" data-submit>
+          <span data-i18n-ar="متابعة" data-i18n-en="Continue">Continue</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- SUB-STEP 1B: Email (hidden until Student ID is validated) -->
+    <div data-activation-substep="1b" class="hidden">
+      <p class="text-muted" data-i18n-ar="أدخل بريدك الإلكتروني المسجل لإرسال رمز التحقق."
+         data-i18n-en="Enter your registered email to receive a verification code.">
+        Enter your registered email to receive a verification code.
+      </p>
+      <div data-form-alert></div>
+      <form novalidate>
+        <div class="field" data-field="email">
+          <label for="a-email" data-i18n-ar="البريد الإلكتروني" data-i18n-en="Email">Email</label>
+          <input class="input" type="email" id="a-email" name="email" autocomplete="email" required>
+          <div class="field-error" role="alert"></div>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block" data-submit>
+          <span data-i18n-ar="إرسال رمز التحقق" data-i18n-en="Send Verification Code">Send Verification Code</span>
+        </button>
+      </form>
+    </div>
+
+  </section>
+
+  <!-- STEP 2: Email code -->
+  <section data-activation-step="2" class="hidden">
+    <p class="text-muted" data-i18n-ar="تم إرسال رمز مكوّن من 6 أرقام إلى بريدك الإلكتروني. صالح لمدة 10 دقائق."
+       data-i18n-en="A 6-digit code was sent to your email. It is valid for 10 minutes.">
+      A 6-digit code was sent to your email. It is valid for 10 minutes.
+    </p>
+    <div data-form-alert></div>
+    <form novalidate>
+      <div class="field" data-field="code">
+        <label for="a-code" data-i18n-ar="رمز التحقق" data-i18n-en="Verification Code">Verification Code</label>
+        <input class="input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="a-code" name="code" required>
+        <div class="field-error" role="alert"></div>
+      </div>
+      <button type="submit" class="btn btn--primary btn--block" data-submit>
+        <span data-i18n-ar="تحقق" data-i18n-en="Verify">Verify</span>
+      </button>
+    </form>
+  </section>
+
+  <!-- STEP 3: Set password -->
+  <section data-activation-step="3" class="hidden">
+    <p class="text-muted" data-i18n-ar="أنشئ كلمة مرور لحسابك (10 أحرف على الأقل)."
+       data-i18n-en="Create a password for your account (at least 10 characters).">
+      Create a password for your account (at least 10 characters).
+    </p>
+    <div data-form-alert></div>
+    <form novalidate>
+      <div class="field" data-field="password">
+        <label for="a-password" data-i18n-ar="كلمة المرور" data-i18n-en="Password">Password</label>
+        <div class="password-field">
+          <input class="input" type="password" id="a-password" name="password"
+                 autocomplete="new-password" required data-password-field="p1">
+          <button type="button" class="password-toggle" data-password-toggle="p1" aria-pressed="false"
+                  data-i18n-ar="إظهار" data-i18n-en="Show">Show</button>
+        </div>
+        <div class="hint" data-i18n-ar="10 أحرف على الأقل" data-i18n-en="At least 10 characters">At least 10 characters</div>
+        <div class="field-error" role="alert"></div>
+      </div>
+      <div class="field" data-field="confirm_password">
+        <label for="a-confirm" data-i18n-ar="تأكيد كلمة المرور" data-i18n-en="Confirm Password">Confirm Password</label>
+        <div class="password-field">
+          <input class="input" type="password" id="a-confirm" name="confirm_password"
+                 autocomplete="new-password" required data-password-field="p2">
+          <button type="button" class="password-toggle" data-password-toggle="p2" aria-pressed="false"
+                  data-i18n-ar="إظهار" data-i18n-en="Show">Show</button>
+        </div>
+        <div class="field-error" role="alert"></div>
+      </div>
+      <button type="submit" class="btn btn--primary btn--block" data-submit>
+        <span data-i18n-ar="متابعة" data-i18n-en="Continue">Continue</span>
+      </button>
+    </form>
+  </section>
+
+  <!-- STEP 4: Security questions -->
+  <section data-activation-step="4" class="hidden">
+    <p class="text-muted" data-i18n-ar="اختر سؤالين مختلفين للأمان وأجب عليهما. ستُستخدم هذه الأسئلة لاستعادة حسابك لاحقًا."
+       data-i18n-en="Choose two different security questions and answer them. These will be used to recover your account later.">
+      Choose two different security questions and answer them. These will be used to recover your account later.
+    </p>
+    <div data-form-alert></div>
+    <form novalidate>
+      <div class="field">
+        <label for="a-q1" data-i18n-ar="السؤال الأول" data-i18n-en="First Question">First Question</label>
+        <select class="input" id="a-q1" name="q1_id" required>
+          <option value="" data-i18n-ar="اختر سؤالًا" data-i18n-en="Choose a question">Choose a question</option>
+          <option value="q1" data-i18n-ar="ما اسم أول مدرسة درست فيها؟" data-i18n-en="What was the name of your first school?">What was the name of your first school?</option>
+          <option value="q2" data-i18n-ar="ما اسم مدينة تتذكرها جيدًا؟" data-i18n-en="What is the name of a city you remember well?">What is the name of a city you remember well?</option>
+          <option value="q3" data-i18n-ar="ما لقبك في طفولتك؟" data-i18n-en="What was your childhood nickname?">What was your childhood nickname?</option>
+          <option value="q4" data-i18n-ar="ما مادتك الدراسية المفضلة؟" data-i18n-en="What was your favorite school subject?">What was your favorite school subject?</option>
+          <option value="q5" data-i18n-ar="ما أول كتاب تتذكر أنك قرأته؟" data-i18n-en="What was the first book you remember reading?">What was the first book you remember reading?</option>
+          <option value="q6" data-i18n-ar="ما اسم معلم تتذكره؟" data-i18n-en="What is the name of a teacher you remember?">What is the name of a teacher you remember?</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="a-a1" data-i18n-ar="الإجابة" data-i18n-en="Answer">Answer</label>
+        <input class="input" type="text" id="a-a1" name="a1" required>
+      </div>
+      <div class="field">
+        <label for="a-q2" data-i18n-ar="السؤال الثاني" data-i18n-en="Second Question">Second Question</label>
+        <select class="input" id="a-q2" name="q2_id" required>
+          <option value="" data-i18n-ar="اختر سؤالًا" data-i18n-en="Choose a question">Choose a question</option>
+          <option value="q1" data-i18n-ar="ما اسم أول مدرسة درست فيها؟" data-i18n-en="What was the name of your first school?">What was the name of your first school?</option>
+          <option value="q2" data-i18n-ar="ما اسم مدينة تتذكرها جيدًا؟" data-i18n-en="What is the name of a city you remember well?">What is the name of a city you remember well?</option>
+          <option value="q3" data-i18n-ar="ما لقبك في طفولتك؟" data-i18n-en="What was your childhood nickname?">What was your childhood nickname?</option>
+          <option value="q4" data-i18n-ar="ما مادتك الدراسية المفضلة؟" data-i18n-en="What was your favorite school subject?">What was your favorite school subject?</option>
+          <option value="q5" data-i18n-ar="ما أول كتاب تتذكر أنك قرأته؟" data-i18n-en="What was the first book you remember reading?">What was the first book you remember reading?</option>
+          <option value="q6" data-i18n-ar="ما اسم معلم تتذكره؟" data-i18n-en="What is the name of a teacher you remember?">What is the name of a teacher you remember?</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="a-a2" data-i18n-ar="الإجابة" data-i18n-en="Answer">Answer</label>
+        <input class="input" type="text" id="a-a2" name="a2" required>
+      </div>
+      <button type="submit" class="btn btn--primary btn--block" data-submit>
+        <span data-i18n-ar="تفعيل الحساب" data-i18n-en="Activate Account">Activate Account</span>
+      </button>
+    </form>
+  </section>
+
+  <!-- STEP 5: Success -->
+  <section data-activation-step="5" class="hidden state-panel">
+    <h3 data-i18n-ar="تم تفعيل حسابك" data-i18n-en="Account Activated">Account Activated</h3>
+    <p data-i18n-ar="يمكنك الآن تسجيل الدخول باستخدام رقمك الجامعي وكلمة المرور."
+       data-i18n-en="You can now sign in using your Student ID and password.">
+      You can now sign in using your Student ID and password.
+    </p>
+    <a href="login.html" class="btn btn--primary" data-i18n-ar="تسجيل الدخول" data-i18n-en="Sign In">Sign In</a>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-bottom">
+    <span data-i18n-ar="© جمعية طلاب الهندسة المدنية — الجامعة التكنولوجية، السودان"
+          data-i18n-en="© Civil Engineering Student Society — Technological University, Sudan">© CESS</span>
+  </div>
+</footer>
+
+<script src="../js/api.js"></script>
+<script src="../js/session.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+</body>
+</html>
