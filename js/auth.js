@@ -171,23 +171,6 @@ const CessActivation = {
     this.initStep4();
   },
 
-  /**
-   * Step 1 has two sequential sub-steps within the same visible step
-   * (see data-activation-substep="1a" / "1b" in activate.html):
-   *
-   *   1A — Student ID only. Calls CessApi.startActivation(studentId).
-   *        A successful response means "Student ID validated, show
-   *        the email field" (email_required: true) — it does NOT mean
-   *        an OTP was sent, and must not advance to Step 2.
-   *
-   *   1B — Email, shown only after 1A succeeds. Calls
-   *        CessApi.startActivation(studentId, email). Only a
-   *        successful response here means an OTP was actually sent,
-   *        and only then do we advance to Step 2.
-   *
-   * This mirrors the two-phase auth.startActivation backend contract:
-   * the same public action, called once without email and once with it.
-   */
   initStep1() {
     this.initStep1a();
     this.initStep1b();
@@ -217,23 +200,15 @@ const CessActivation = {
         CessI18n.isRtl() ? "جارٍ التحقق..." : "Verifying...", idleLabel);
 
       try {
-        // Phase 1: Student ID only. A successful response here means
-        // the ID was validated and the email field should be revealed —
-        // it does not mean an OTP was sent. The exact "student not
-        // found" message (and other activation-state errors) returned
-        // by the backend is intentional, disclosed product behavior
-        // and must be shown to the user as-is.
+        alert("DEBUG 1: قبل الاستدعاء, studentId=" + studentId);
         const data = await CessApi.startActivation(studentId);
+        alert("DEBUG 2: نجح! data=" + JSON.stringify(data));
 
         CessActivation.state.studentId = studentId;
-
-        // A successful response here means the ID was validated and
-        // the email field should be revealed — it does not mean an
-        // OTP was sent. We deliberately do not branch on the exact
-        // response shape beyond success: any successful Phase 1
-        // response reveals the email sub-step and stays on Step 1.
         CessActivation.revealEmailSubstep();
+        alert("DEBUG 3: بعد revealEmailSubstep");
       } catch (err) {
+        alert("DEBUG ERROR: " + (err && err.message) + "\n\nNAME: " + (err && err.name) + "\n\nSTACK:\n" + (err && err.stack));
         cessShowAlert(alertBox, err.message, "error");
       } finally {
         cessSetLoading(submitBtn, false, "", idleLabel);
@@ -265,9 +240,6 @@ const CessActivation = {
         CessI18n.isRtl() ? "جارٍ الإرسال..." : "Sending...", idleLabel);
 
       try {
-        // Phase 2: Student ID + email. Only a successful response here
-        // means the OTP was actually generated and sent — only now do
-        // we advance to Step 2.
         await CessApi.startActivation(CessActivation.state.studentId, email);
         CessActivation.state.email = email;
         CessActivation.goToStep(2);
@@ -279,10 +251,6 @@ const CessActivation = {
     });
   },
 
-  /**
-   * Reveals sub-step 1B (email) after 1A (Student ID) succeeds.
-   * Stays on Step 1 in the indicator — no new visible step is added.
-   */
   revealEmailSubstep() {
     const substep1a = document.querySelector("[data-activation-substep='1a']");
     const substep1b = document.querySelector("[data-activation-substep='1b']");
@@ -395,8 +363,6 @@ const CessActivation = {
     const select1 = form.querySelector("[name='q1_id']");
     const select2 = form.querySelector("[name='q2_id']");
 
-    // Prevent picking the same question twice at the UI level;
-    // the backend also enforces this (authSetSecurityQuestions).
     function syncOptions() {
       [select1, select2].forEach((sel, idx) => {
         const other = idx === 0 ? select2 : select1;
@@ -499,8 +465,6 @@ const CessRecovery = {
         CessI18n.isRtl() ? "جارٍ الإرسال..." : "Sending...", idleLabel);
 
       try {
-        // Generic ack regardless of whether the account exists —
-        // matches authForgotPasswordStart's anti-enumeration design.
         await CessApi.forgotPasswordStart(studentId);
         CessRecovery.state.studentId = studentId;
         CessRecovery.goToStep(2);
@@ -620,7 +584,12 @@ const CessRecovery = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  initLoginForm();
-  CessActivation.init();
-  CessRecovery.init();
+  try {
+    initLoginForm();
+    CessActivation.init();
+    CessRecovery.init();
+    alert("DEBUG 0: init كامل تم بدون أخطاء");
+  } catch (err) {
+    alert("DEBUG INIT ERROR: " + (err && err.message) + "\n\nSTACK:\n" + (err && err.stack));
+  }
 });
